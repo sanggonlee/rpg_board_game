@@ -1,3 +1,13 @@
+import inspect
+
+
+SKIP_GOLD_GET = True
+SKIP_HEAL = False
+SKIP_RESPAWN = True
+SKIP_MONSTER_FIGHT = False
+SKIP_SHOP = False
+
+
 class Debugger:
     """
     Debugging level 1~3 for now
@@ -11,12 +21,13 @@ class Debugger:
     LEVEL2 = 2
     LEVEL3 = 3
 
-    SKIP_GOLD_GET = False  # omit the gold_get event for debugging
-
     def __init__(self):
         pass
 
     @classmethod
     def log(cls, message, level):
         if cls.DEBUG_MODE and level <= cls._level:
-            print "[DEBUG] {}".format(message)
+            print "[DEBUG][{}.{}] {}".format(
+                inspect.getmodulename(inspect.stack()[1][1]),
+                inspect.stack()[1][3], message
+            )

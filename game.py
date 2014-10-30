@@ -2,15 +2,12 @@ __author__ = 'San Lee'
 
 import pygame as pg
 
-from constants import *
-from colour import *
 from data import *
 
 from board import Board
-from player import Player
-import eztext
+from player import Player, EVENT_GO_FORWARD
 
-from debugger import Debugger
+from debugger import Debugger as DEBUG
 
 
 class Game:
@@ -35,7 +32,7 @@ class Game:
                                                                   WINDOW_HEIGHT-2*TILE_HEIGHT))
 
     def start(self):
-        Debugger.log("[Game, start] Game started", Debugger.LEVEL1)
+        DEBUG.log("Game started", DEBUG.LEVEL1)
         self.board.draw(self.whole_screen)
 
         # main loop (one turn per iteration)
@@ -53,15 +50,14 @@ class Game:
             player = self.players[which_player_turn]
 
             # process dice rolling
-            dice_result = player.roll_dice(self.centre_screen, player.EVENT_GO_FORWARD)
+            dice_result = player.roll_dice(self.centre_screen, EVENT_GO_FORWARD)
 
             # clear the centre screen and the tile that the player was in, because the player's not there anymore
-            self.centre_screen.fill(WHITE)
+            self.centre_screen.fill(BACKGROUND_COLOUR)
             self.board.tiles[player.position].draw(self.whole_screen)
 
             player.position += dice_result
-            Debugger.log("[Game, start] Player {}, moving to position {}".format(which_player_turn+1, player.position),
-                         Debugger.LEVEL1)
+            DEBUG.log("Player {}, moving to position {}".format(which_player_turn+1, player.position), DEBUG.LEVEL1)
             if player.position >= len(self.board.tiles):
                 break
             player.draw_token(self.whole_screen, self.board.tiles[player.position])

@@ -1,5 +1,9 @@
 __author__ = 'San Lee'
 
+from colour import WHITE
+
+BACKGROUND_COLOUR = WHITE
+
 WINDOW_WIDTH = 1000
 WINDOW_HEIGHT = 600
 

@@ -19,7 +19,7 @@ class Board:
             self.tiles.append(Tile(i, tile_data[i]))
 
     def draw(self, screen):
-        Debugger.log("[Board, draw] ENTERED", Debugger.LEVEL1)
+        Debugger.log("entered", Debugger.LEVEL1)
         for tile in self.tiles:
             tile.draw(screen)
             pg.display.flip()

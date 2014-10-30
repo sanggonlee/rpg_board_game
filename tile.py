@@ -4,7 +4,7 @@ import pygame as pg
 from constants import *
 from data import *
 
-from debugger import Debugger
+from debugger import Debugger as DEBUG
 
 NUM_TILES_WIDTH = WINDOW_WIDTH / TILE_HEIGHT
 NUM_TILES_HEIGHT = WINDOW_HEIGHT / TILE_HEIGHT
@@ -40,10 +40,9 @@ class Tile:
             self.x_pos = 0
             self.y_pos = WINDOW_HEIGHT - (self.index - (2*NUM_TILES_WIDTH + NUM_TILES_HEIGHT - 3) + 1) * self.height
         else:
-            Debugger.log("[Tile, init] Should never reach here, undefined tile position", Debugger.LEVEL1)
+            raise IndexError("Tile index out of range: {}".format(self.index))
 
-        Debugger.log("[Tile, init] initialized tile, index={}, pos=({},{})".format(self.index, self.x_pos, self.y_pos),
-                     Debugger.LEVEL2)
+        DEBUG.log("initialized tile, index={}, pos=({},{})".format(self.index, self.x_pos, self.y_pos), DEBUG.LEVEL2)
 
     def draw(self, screen):
         if self.data[TILE_TYPE] == TILE_GOLD:
@@ -53,12 +52,12 @@ class Tile:
         elif self.data[TILE_TYPE] == TILE_SHOP:
             self.image = pg.image.load('smile.png')
         elif self.data[TILE_TYPE] == TILE_RESPAWN:
-            self.image = pg.image.load('smile.png')
+            self.image = pg.image.load('respawn.png')
         elif self.data[TILE_TYPE] == TILE_HEAL:
-            self.image = pg.image.load('smile.png')
+            self.image = pg.image.load('heal.png')
         elif self.data[TILE_TYPE] == TILE_OTHER_EVENT:
             self.image = pg.image.load('smile.png')
 
         self.image = pg.transform.scale(self.image, (self.width, self.height))
-        Debugger.log("[Board, draw] received image, image={}".format(self.image), Debugger.LEVEL3)
+        DEBUG.log("received image, image={}".format(self.image), DEBUG.LEVEL3)
         screen.blit(self.image, (self.x_pos, self.y_pos))
