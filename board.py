@@ -8,7 +8,7 @@ from debugger import Debugger
 
 class Board:
     """
-    Game board class
+    Game board UI class
     Member variables:
     (tuple) size  - N x N size of the board
     (list)  tiles - (NxN)-number of tiles in a list

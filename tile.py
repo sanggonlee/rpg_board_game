@@ -1,7 +1,7 @@
 __author__ = 'San Lee'
 
 import pygame as pg
-from constants import *
+import os
 from data import *
 
 from debugger import Debugger as DEBUG
@@ -48,7 +48,11 @@ class Tile:
         if self.data[TILE_TYPE] == TILE_GOLD:
             self.image = pg.image.load('gold_get.png')
         elif self.data[TILE_TYPE] == TILE_MONSTER:
-            self.image = pg.image.load('smile.png')
+            try:
+                self.image = pg.image.load(os.path.join(MONSTER_IMG_FILE_PATH, self.data[TILE_DATA][MONSTER_IMG_FILE]))
+            except RuntimeError as e:
+                DEBUG.log(e, DEBUG.LEVEL1)
+                self.image = pg.image.load('smile.png')
         elif self.data[TILE_TYPE] == TILE_SHOP:
             self.image = pg.image.load('smile.png')
         elif self.data[TILE_TYPE] == TILE_RESPAWN:
