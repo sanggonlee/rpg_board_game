@@ -1,7 +1,7 @@
 import pygame as pg
 from pygame.locals import *
 from colour import *
-from debugger import Debugger
+from debugger import Debugger as DEBUG
 
 
 class Button(object):
@@ -72,5 +72,5 @@ class Button(object):
             mouse_pos = pg.mouse.get_pos()
             if self._topLeft[0] <= mouse_pos[0] <= self._topLeft[0]+self._rect.width \
                and self._topLeft[1] <= mouse_pos[1] <= self._topLeft[1]+self._rect.height:
-                Debugger.log("Button {} pressed".format(self._text), Debugger.LEVEL3)
+                DEBUG.log("Button {} pressed".format(self._text), level=3)
                 self.buttonPressed = True

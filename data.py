@@ -16,7 +16,7 @@ MONSTER_DEFENCE = 6
 
 monster_data = {
     # monster's data representation is
-    # name: (type, image file, level, health, attack, defence)
+    # name: (type, name, image file, level, health, attack, defence)
 
     'bandit': (MONSTER_TYPE_MINION, 'Bandit', 'bandit.png', 1, 30, 4, 0),
     'boar': (MONSTER_TYPE_MINION, 'Boar', 'boar.png', 1, 40, 3, 0),

@@ -1,5 +1,5 @@
-import sys
 import pygame as pg
+import sys
 
 from button import Button
 import eztext
@@ -48,7 +48,7 @@ while i < 6000:
         if not num_players_textbox.return_pressed:
             num_players_textbox.draw(screen)
         else:
-            DEBUG.log("num_players_textbox returned", DEBUG.LEVEL1)
+            DEBUG.log("num_players_textbox returned", level=1)
             num_human_players = int(num_players_textbox.value)
             num_players_textbox = None
 

@@ -42,7 +42,7 @@ class Tile:
         else:
             raise IndexError("Tile index out of range: {}".format(self.index))
 
-        DEBUG.log("initialized tile, index={}, pos=({},{})".format(self.index, self.x_pos, self.y_pos), DEBUG.LEVEL2)
+        DEBUG.log("initialized tile, index={}, pos=({},{})".format(self.index, self.x_pos, self.y_pos), level=2)
 
     def draw(self, screen):
         if self.data[TILE_TYPE] == TILE_GOLD:
@@ -51,7 +51,7 @@ class Tile:
             try:
                 self.image = pg.image.load(os.path.join(MONSTER_IMG_FILE_PATH, self.data[TILE_DATA][MONSTER_IMG_FILE]))
             except RuntimeError as e:
-                DEBUG.log(e, DEBUG.LEVEL1)
+                DEBUG.log(e, level=1)
                 self.image = pg.image.load('smile.png')
         elif self.data[TILE_TYPE] == TILE_SHOP:
             self.image = pg.image.load('smile.png')
@@ -63,5 +63,5 @@ class Tile:
             self.image = pg.image.load('smile.png')
 
         self.image = pg.transform.scale(self.image, (self.width, self.height))
-        DEBUG.log("received image, image={}".format(self.image), DEBUG.LEVEL3)
+        DEBUG.log("received image, image={}".format(self.image), level=3)
         screen.blit(self.image, (self.x_pos, self.y_pos))

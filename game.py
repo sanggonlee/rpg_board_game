@@ -1,6 +1,7 @@
 __author__ = 'San Lee'
 
 import pygame as pg
+import sys
 
 from data import *
 
@@ -21,7 +22,7 @@ class Game:
         self.num_players = self.num_human_players + self.num_bot_players
         self.players = []
         for i in range(self.num_players):
-            self.players.append(Player(i, 100))
+            self.players.append(Player(i, 50))
 
         self.board = Board(10, 6)
         self.turn = 0
@@ -32,18 +33,18 @@ class Game:
                                                                   WINDOW_HEIGHT-2*TILE_HEIGHT))
 
     def start(self):
-        DEBUG.log("Game started", DEBUG.LEVEL1)
+        DEBUG.log("Game started", level=1)
         self.board.draw(self.whole_screen)
 
+        self.update_player_pos()
         # main loop (one turn per iteration)
-        for turn in range(5000):
-            self.turn = turn
+        while True:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
 
-            # draw all players' tokens
-            for player_index in range(self.num_players):
-                self.players[player_index].\
-                    draw_token(self.whole_screen, self.board.tiles[self.players[player_index].position])
-            pg.display.flip()
+            self.turn += 1
 
             # determine who plays this turn
             which_player_turn = self.turn % self.num_players
@@ -57,8 +58,20 @@ class Game:
             self.board.tiles[player.position].draw(self.whole_screen)
 
             player.position += dice_result
-            DEBUG.log("Player {}, moving to position {}".format(which_player_turn+1, player.position), DEBUG.LEVEL1)
+            DEBUG.log("Player {}, moving to position {}".format(which_player_turn+1, player.position), level=1)
             if player.position >= len(self.board.tiles):
                 break
-            player.draw_token(self.whole_screen, self.board.tiles[player.position])
-            player.invoke_tile_action(self.centre_screen, tile_data[player.position])
+
+            self.update_player_pos()
+            action_result = player.invoke_tile_action(self.centre_screen, tile_data[player.position])
+            if action_result == ACTION_RESULT_DIE:
+                # if died, clear the player token from the tile
+                self.board.tiles[player.died_position].draw(self.whole_screen)
+                self.update_player_pos()
+
+    def update_player_pos(self):
+        # draw all players' tokens
+        for player_index in range(self.num_players):
+            self.players[player_index].\
+                draw_token(self.whole_screen, self.board.tiles[self.players[player_index].position])
+        pg.display.flip()
