@@ -10,6 +10,18 @@ from constants import *
 
 from debugger import Debugger as DEBUG
 
+
+def show_class_choice(screen):
+    """
+    Lets the users select their class (Knight, Ranger, Bounty Hunter)
+    :param screen:
+    :return:
+    """
+    choice_screen_width = 600
+    choice_screen_height = 400
+    choice_screen = screen.subsurface(0, 0, choice_screen_width, choice_screen_height)
+    #TODO: Implement the rest of this
+
 pg.init()
 
 screen = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))

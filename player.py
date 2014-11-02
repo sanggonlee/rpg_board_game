@@ -5,9 +5,10 @@ import random
 import os
 import sys
 
-from colour import *
+from colour import BLACK
 from data import *
 import eztext
+from button import Button
 
 from debugger import Debugger as DEBUG, SKIP_GOLD_GET, SKIP_HEAL, SKIP_RESPAWN, SKIP_MONSTER_FIGHT, SKIP_SHOP
 
@@ -58,6 +59,8 @@ class Player:
         self.current_attack = self.base_attack
         self.current_defence = self.base_defence
 
+        self.action_result = ACTION_RESULT_INVALID
+
     @staticmethod
     def get_dice_number():
         return random.randint(1, 6)
@@ -93,7 +96,7 @@ class Player:
         dice_roll_textbox = self.get_dice_roll_textbox(event_type)
         centre_of_centre = dice_roll_textbox.get_centre_surface(centre_screen)
         dice_roll_textbox.draw(centre_of_centre)
-        pg.display.update(pg.Rect(TILE_WIDTH, TILE_HEIGHT, WINDOW_WIDTH-2*TILE_WIDTH, WINDOW_HEIGHT-2*TILE_HEIGHT))
+        pg.display.update(centre_screen.get_rect())
 
         # dice rolling loop
         while True:
@@ -159,7 +162,8 @@ class Player:
             centre_screen,
             "Player {} found {} gold and now has {} gold!".format(self.player_id+1, amount_got, self.gold),
             1000)
-        return ACTION_RESULT_GOLD_GET
+        self.action_result = ACTION_RESULT_GOLD_GET
+        return self.action_result
 
     def process_action_monster(self, centre_screen, data):
         fight_condition_num = self.roll_dice(centre_screen, EVENT_MONSTER_FIGHT)
@@ -167,7 +171,8 @@ class Player:
         card_surface = self.draw_monster_card(centre_screen, data)
 
         fight_scene_surface = centre_screen.subsurface((card_surface.get_width(), 0), card_surface.get_size())
-        return self.process_monster_fight(fight_scene_surface, data, fight_condition_num)
+        self.process_monster_fight(fight_scene_surface, data, fight_condition_num)
+        return self.action_result
 
     def process_action_heal(self, centre_screen, amount):
         self.current_health = min(self.current_health+amount, self.full_health)
@@ -176,7 +181,8 @@ class Player:
             "Player {} gets treated! HP:{}/{}".format(self.player_id+1, self.current_health, self.full_health),
             1000
         )
-        return ACTION_RESULT_HEAL
+        self.action_result = ACTION_RESULT_HEAL
+        return self.action_result
 
     def process_action_respawn(self, centre_screen, position):
         self.respawn_pos = position
@@ -185,11 +191,14 @@ class Player:
             "Player {} marks the respawn point here!".format(self.player_id+1),
             1000
         )
-        return ACTION_RESULT_RESPAWN
+        self.action_result = ACTION_RESULT_RESPAWN
+        return self.action_result
 
     def process_action_shop(self, centre_screen, data):
-        pass
+        self.shop_initial_dialog(centre_screen, data)
+        return self.action_result
 
+    @staticmethod
     def draw_monster_card(self, centre_screen, data):
         """
         :param centre_screen: screen excluding the tiles area
@@ -268,9 +277,9 @@ class Player:
             pg.time.delay(300)
 
             if self.current_health <= 0:
-                return self.die(fight_scene_surface)
+                self.die(fight_scene_surface)
             elif monster_current_hp <= 0:
-                return self.win(fight_scene_surface, data)
+                self.win(fight_scene_surface, data)
 
             if turn % 2 == MONSTER_TURN:
                 self.current_health -= (data[MONSTER_ATTACK] - self.current_defence)
@@ -286,7 +295,7 @@ class Player:
         self.died_position = self.position
         self.position = self.respawn_pos
 
-        return ACTION_RESULT_DIE
+        self.action_result = ACTION_RESULT_DIE
 
     def win(self, fight_scene_surface, data):
         msg = "Player {} has gained {} exp and {} gold!"\
@@ -297,4 +306,102 @@ class Player:
         self.exp += 10*data[MONSTER_LEVEL]
         self.gold += 10*data[MONSTER_LEVEL]
 
-        return ACTION_RESULT_WIN
+        self.action_result = ACTION_RESULT_WIN
+
+    def shop_initial_dialog(self, centre_screen, data):
+        centre_screen.fill(BACKGROUND_COLOUR)
+
+        button_rect = pg.Rect(0, 0, 240, 60)
+        buy_button = Button(
+            centre_screen,
+            (centre_screen.get_width()/2, centre_screen.get_height()/2 - button_rect.height),
+            "Buy", 20, rect=button_rect, pos_offset=(TILE_WIDTH, TILE_HEIGHT))
+        sell_button = Button(
+            centre_screen,
+            (centre_screen.get_width()/2, centre_screen.get_height()/2),
+            "Sell", 20, rect=button_rect, pos_offset=(TILE_WIDTH, TILE_HEIGHT))
+        leave_button = Button(
+            centre_screen, (centre_screen.get_width()/2, centre_screen.get_height()/2 + button_rect.height),
+            "Leave", 20, rect=button_rect, pos_offset=(TILE_WIDTH, TILE_HEIGHT))
+        buy_button.update()
+        sell_button.update()
+        leave_button.update()
+        pg.display.flip()
+
+        while True:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+
+                buy_button.update_state(event)
+                sell_button.update_state(event)
+                leave_button.update_state(event)
+
+            if buy_button.buttonPressed:
+                DEBUG.log("Buy button pressed", level=2)
+                centre_screen.fill(BACKGROUND_COLOUR)
+                self.shop_action_buy(centre_screen, data)
+                break
+            elif sell_button.buttonPressed:
+                DEBUG.log("Sell button pressed", level=2)
+                centre_screen.fill(BACKGROUND_COLOUR)
+                self.shop_action_sell(centre_screen)
+                break
+            elif leave_button.buttonPressed:
+                DEBUG.log("Leave button pressed", level=2)
+                self.action_result = ACTION_RESULT_SHOP_LEAVE
+                # escape recursion if leaving
+                return
+
+        # recursive process for buying/selling
+        self.shop_initial_dialog(centre_screen, data)
+
+    def shop_action_buy(self, centre_screen, data):
+        item_count = len(data) + 1  # last item is "Cancel" button
+        DEBUG.log("Number of items in this shop: {}".format(item_count-1), level=1)
+        button_rect = pg.Rect(0, 0, 300, 40)
+
+        item_button_list = []
+        for item_index in range(item_count):
+            y_pos = centre_screen.get_height()/2 - ((item_count/2-item_index) * button_rect.height)
+            if item_index == item_count-1:
+                item_name = "Cancel"
+            else:
+                item_name = data[item_index][0]
+            DEBUG.log("Item name: {}".format(item_name), level=2)
+            item_button = Button(
+                centre_screen, (centre_screen.get_width()/2, y_pos),
+                item_name, 14, rect=button_rect, pos_offset=(TILE_WIDTH, TILE_HEIGHT))
+            item_button.update()
+            if item_name != "Cancel":
+                try:
+                    item_button.insert_picture((0, 0), os.path.join(ITEM_IMG_FILE_PATH, data[item_index][ITEM_FILENAME]))
+                except RuntimeError as e:
+                    DEBUG.log(e, level=1)
+                    item_button.insert_picture((0, 0), 'smile.png')
+            item_button_list.append(item_button)
+        pg.display.update(centre_screen.get_rect())
+
+        while True:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+                for button in item_button_list:
+                    button.update_state(event)
+
+            for button in item_button_list:
+                if button.buttonPressed:
+                    if button.text == "Cancel":
+                        return
+                    else:
+                        #TODO: implement item buying process here
+
+                        self.action_result = ACTION_RESULT_SHOP_BUY
+                        return
+
+    def shop_action_sell(self, centre_screen):
+
+
+        self.action_result = ACTION_RESULT_SHOP_SELL

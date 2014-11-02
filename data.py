@@ -38,36 +38,33 @@ monster_data = {
 #   Weapon data
 ##################################################################
 
-WEAPON_FILENAME = 0
-WEAPON_ATTACK = 1
-WEAPON_PRICE = 2
+ITEM_NAME = 0
+ITEM_FILENAME = 1
+ITEM_POINT = 2
+ITEM_PRICE = 3
 
 weapon_data = {
     # weapon's data format is
     # name: (image_file, attack, price)
 
-    'dagger': ('dagger.png', 10, 40),
-    'spear': ('spear.png', 14, 80),
-    'long sword': ('long_sword.png', 18, 140),
-    'shining morning star': ('shining_morning_star.png', 23, 200),
+    'dagger': ('Dagger', 'dagger.png', 10, 40),
+    'spear': ('Spear', 'spear.png', 14, 80),
+    'long sword': ('Long Sword', 'long_sword.png', 18, 140),
+    'shining morning star': ('Shining Morning Star', 'shining_morning_star.png', 23, 200),
 }
 
 ##################################################################
 #   Armor data
 ##################################################################
 
-ARMOR_FILENAME = 0
-ARMOR_ATTACK = 1
-ARMOR_PRICE = 2
-
 armor_data = {
     # armor's data format is
     # name: (image_file, defence, price)
 
-    'quilt shirts': ('quilt_shirts.png', 1, 50),
-    'leather jacket': ('leather_jacket.png', 2, 120),
-    'ring mail': ('ring_mail.png', 3, 210),
-    'plate armor': ('plate_armor.png', 4, 300),
+    'quilt shirts': ('Quilt Shirts', 'quilt_shirts.png', 1, 50),
+    'leather jacket': ('Leather Jacket', 'leather_jacket.png', 2, 120),
+    'ring mail': ('Ring Mail', 'ring_mail.png', 3, 210),
+    'plate armor': ('Plate Armor', 'plate_armor.png', 4, 300),
 }
 
 ##################################################################

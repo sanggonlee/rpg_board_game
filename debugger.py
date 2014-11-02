@@ -3,9 +3,9 @@ import inspect
 
 SKIP_GOLD_GET = True
 SKIP_HEAL = True
-SKIP_RESPAWN = False
-SKIP_MONSTER_FIGHT = False
-SKIP_SHOP = True
+SKIP_RESPAWN = True
+SKIP_MONSTER_FIGHT = True
+SKIP_SHOP = False
 
 
 class Debugger:
