@@ -74,31 +74,33 @@ armor_data = {
 TILE_TYPE = 0
 TILE_GOLD_MULTIPLIER = 1
 TILE_HEAL_AMOUNT = 1
-TILE_DATA = 1
+TILE_MONSTER_DATA = 1
+TILE_ITEM_TYPE = 0
+TILE_ITEM_DATA = 1
 
 tile_data = [
     (TILE_RESPAWN,),
     (TILE_GOLD, 10),
     (TILE_GOLD, 5),
-    (TILE_SHOP, [weapon_data['dagger'], weapon_data['spear']]),
+    (TILE_WEAPON_SHOP, [weapon_data['dagger'], weapon_data['spear']], ),
     (TILE_GOLD, 5),
     (TILE_MONSTER, monster_data['bandit']),
     (TILE_MONSTER, monster_data['boar']),
     (TILE_GOLD, 10),
     (TILE_HEAL, 100),
     (TILE_RESPAWN,),
-    (TILE_SHOP, [armor_data['quilt shirts'], armor_data['leather jacket']]),
+    (TILE_ARMOR_SHOP, [armor_data['quilt shirts'], armor_data['leather jacket']]),
     (TILE_GOLD, 5),
     (TILE_MONSTER, monster_data['bandit']),
     (TILE_HEAL, 100),
     (TILE_RESPAWN,),
     (TILE_GOLD, 10),
     (TILE_MONSTER, monster_data['boar']),
-    (TILE_SHOP, [weapon_data['dagger'], weapon_data['spear'], weapon_data['long sword']]),
+    (TILE_ARMOR_SHOP, [weapon_data['dagger'], weapon_data['spear'], weapon_data['long sword']]),
     (TILE_MONSTER, monster_data['orc']),
     (TILE_HEAL, 100),
     (TILE_MONSTER, monster_data['skeleton']),
-    (TILE_SHOP, [armor_data['quilt shirts'], armor_data['leather jacket'], armor_data['ring mail']]),
+    (TILE_ARMOR_SHOP, [armor_data['quilt shirts'], armor_data['leather jacket'], armor_data['ring mail']]),
     (TILE_GOLD, 10),
     (TILE_RESPAWN,),
     (TILE_MONSTER, monster_data['fallen knight']),

@@ -47,8 +47,8 @@ class Player:
 
         self.weapon = None
         self.armor = None
-        self.inventory = [None, None, None, None, None]
-        self.gold = 0
+        self.inventory = []
+        self.gold = 500
         self.exp = 0
 
         self.full_health = health
@@ -121,7 +121,7 @@ class Player:
         elif tile_type is TILE_MONSTER:
             if SKIP_MONSTER_FIGHT:
                 return
-            result = self.process_action_monster(centre_screen, tile_value[TILE_DATA])
+            result = self.process_action_monster(centre_screen, tile_value[TILE_MONSTER_DATA])
         elif tile_type is TILE_HEAL:
             if SKIP_HEAL:
                 return
@@ -130,10 +130,10 @@ class Player:
             if SKIP_RESPAWN:
                 return
             result = self.process_action_respawn(centre_screen, self.position)
-        elif tile_type is TILE_SHOP:
+        elif tile_type is TILE_WEAPON_SHOP or tile_type is TILE_ARMOR_SHOP:
             if SKIP_SHOP:
                 return
-            result = self.process_action_shop(centre_screen, tile_value[TILE_DATA])
+            result = self.process_action_shop(centre_screen, tile_value)
         else:
             raise TypeError("Undefined type of tile!")
         return result
@@ -194,8 +194,8 @@ class Player:
         self.action_result = ACTION_RESULT_RESPAWN
         return self.action_result
 
-    def process_action_shop(self, centre_screen, data):
-        self.shop_initial_dialog(centre_screen, data)
+    def process_action_shop(self, centre_screen, tile_value):
+        self.shop_initial_dialog(centre_screen, tile_value)
         return self.action_result
 
     @staticmethod
@@ -308,7 +308,7 @@ class Player:
 
         self.action_result = ACTION_RESULT_WIN
 
-    def shop_initial_dialog(self, centre_screen, data):
+    def shop_initial_dialog(self, centre_screen, tile_value):
         centre_screen.fill(BACKGROUND_COLOUR)
 
         button_rect = pg.Rect(0, 0, 240, 60)
@@ -341,7 +341,7 @@ class Player:
             if buy_button.buttonPressed:
                 DEBUG.log("Buy button pressed", level=2)
                 centre_screen.fill(BACKGROUND_COLOUR)
-                self.shop_action_buy(centre_screen, data)
+                self.shop_action_buy(centre_screen, tile_value)
                 break
             elif sell_button.buttonPressed:
                 DEBUG.log("Sell button pressed", level=2)
@@ -355,20 +355,29 @@ class Player:
                 return
 
         # recursive process for buying/selling
-        self.shop_initial_dialog(centre_screen, data)
+        self.shop_initial_dialog(centre_screen, tile_value)
 
-    def shop_action_buy(self, centre_screen, data):
+    def shop_action_buy(self, centre_screen, tile_value):
+        shop_type = tile_value[TILE_ITEM_TYPE]
+        data = tile_value[TILE_ITEM_DATA]
+
         item_count = len(data) + 1  # last item is "Cancel" button
         DEBUG.log("Number of items in this shop: {}".format(item_count-1), level=1)
         button_rect = pg.Rect(0, 0, 300, 40)
 
+        centre_screen.fill(BACKGROUND_COLOUR)
         item_button_list = []
         for item_index in range(item_count):
             y_pos = centre_screen.get_height()/2 - ((item_count/2-item_index) * button_rect.height)
             if item_index == item_count-1:
                 item_name = "Cancel"
             else:
-                item_name = data[item_index][0]
+                item_name = data[item_index][ITEM_NAME]
+                if shop_type is TILE_WEAPON_SHOP:
+                    item_name += "   ATT:" + str(data[item_index][ITEM_POINT])
+                elif shop_type is TILE_ARMOR_SHOP:
+                    item_name += "   DEF:" + str(data[item_index][ITEM_POINT])
+                item_name += "    " + str(data[item_index][ITEM_PRICE]) + "G"
             DEBUG.log("Item name: {}".format(item_name), level=2)
             item_button = Button(
                 centre_screen, (centre_screen.get_width()/2, y_pos),
@@ -380,6 +389,7 @@ class Player:
                 except RuntimeError as e:
                     DEBUG.log(e, level=1)
                     item_button.insert_picture((0, 0), 'smile.png')
+
             item_button_list.append(item_button)
         pg.display.update(centre_screen.get_rect())
 
@@ -391,15 +401,60 @@ class Player:
                 for button in item_button_list:
                     button.update_state(event)
 
-            for button in item_button_list:
-                if button.buttonPressed:
-                    if button.text == "Cancel":
+            bought_item = None
+            for button_index in range(len(item_button_list)):
+                if item_button_list[button_index].buttonPressed:
+                    DEBUG.log("{}'th button pressed".format(button_index+1), level=2)
+                    if item_button_list[button_index].text == "Cancel":
+                        DEBUG.log("Cancel clicked", level=2)
                         return
                     else:
-                        #TODO: implement item buying process here
+                        bought_item = data[button_index]
+                        DEBUG.log("Item {} clicked".format(bought_item[ITEM_NAME]), level=2)
+                        break
+            if bought_item:
+                if bought_item[ITEM_PRICE] >= self.gold:
+                    DEBUG.log("Item too expensive.", level=1)
+                    self.show_textbox_at_centre(
+                        centre_screen, "You don't have enough gold.", 1500)
+                    self.shop_action_buy(centre_screen, data)
+                elif shop_type is TILE_WEAPON_SHOP:
+                    DEBUG.log("Buying weapon", level=1)
+                    if self.weapon:
+                        DEBUG.log("Already have weapon", level=2)
+                        self.show_textbox_at_centre(
+                            centre_screen, "You're already equipping a weapon. Sell it first.", 1500)
+                        # recursion to go back to buy menu
+                        self.shop_action_buy(centre_screen, tile_value)
+                    else:
+                        DEBUG.log("Bought weapon {}".format(bought_item[ITEM_NAME]))
+                        self.weapon = bought_item
+                        self.current_attack += bought_item[ITEM_POINT]
+                        self.gold -= bought_item[ITEM_PRICE]
+                        self.show_textbox_at_centre(
+                            centre_screen, "You purchased {}!".format(bought_item[ITEM_NAME]), 1500)
 
                         self.action_result = ACTION_RESULT_SHOP_BUY
-                        return
+                elif shop_type is TILE_ARMOR_SHOP:
+                    DEBUG.log("Buying armor", level=1)
+                    if self.armor:
+                        DEBUG.log("Already have armor", level=2)
+                        self.show_textbox_at_centre(
+                            centre_screen, "You're already equipping an armor. Sell it first.", 1500)
+                        # recursion to go back to buy menu
+                        self.shop_action_buy(centre_screen, tile_value)
+                    else:
+                        DEBUG.log("Bought weapon {}".format(bought_item[ITEM_NAME]))
+                        self.armor = bought_item
+                        self.current_defence += bought_item[ITEM_POINT]
+                        self.gold -= bought_item[ITEM_PRICE]
+                        self.show_textbox_at_centre(
+                            centre_screen, "You purchased {}!".format(bought_item[ITEM_NAME]), 1500)
+
+                        self.action_result = ACTION_RESULT_SHOP_BUY
+                else:
+                    raise TypeError("Invalid type of item")
+                return
 
     def shop_action_sell(self, centre_screen):
 
