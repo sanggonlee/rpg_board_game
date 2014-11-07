@@ -47,7 +47,7 @@ class Player:
 
         self.weapon = None
         self.armor = None
-        self.inventory = []
+        self.inventory = [None, None, None, None, None]
         self.gold = 500
         self.exp = 0
 
@@ -96,7 +96,7 @@ class Player:
         dice_roll_textbox = self.get_dice_roll_textbox(event_type)
         centre_of_centre = dice_roll_textbox.get_centre_surface(centre_screen)
         dice_roll_textbox.draw(centre_of_centre)
-        pg.display.update(centre_screen.get_rect())
+        pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
 
         # dice rolling loop
         while True:
@@ -151,7 +151,7 @@ class Player:
         )
         textbox.draw(textbox.get_centre_surface(centre_screen))
         textbox.update(pg.event.get())
-        pg.display.flip()
+        pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
         pg.time.delay(time)
 
     def process_action_gold_get(self, centre_screen, gold_multiplier):
@@ -249,7 +249,7 @@ class Player:
         )
         monster_defence_textbox.draw(card_surface)
 
-        pg.display.flip()
+        pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
         return card_surface
 
     def process_monster_fight(self, fight_scene_surface, data, fight_condition_num):
@@ -326,7 +326,7 @@ class Player:
         buy_button.update()
         sell_button.update()
         leave_button.update()
-        pg.display.flip()
+        pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
 
         while True:
             for event in pg.event.get():
@@ -382,7 +382,6 @@ class Player:
             item_button = Button(
                 centre_screen, (centre_screen.get_width()/2, y_pos),
                 item_name, 14, rect=button_rect, pos_offset=(TILE_WIDTH, TILE_HEIGHT))
-            item_button.update()
             if item_name != "Cancel":
                 try:
                     item_button.insert_picture((0, 0), os.path.join(ITEM_IMG_FILE_PATH, data[item_index][ITEM_FILENAME]))
@@ -390,8 +389,9 @@ class Player:
                     DEBUG.log(e, level=1)
                     item_button.insert_picture((0, 0), 'smile.png')
 
+            item_button.update()
             item_button_list.append(item_button)
-        pg.display.update(centre_screen.get_rect())
+        pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
 
         while True:
             for event in pg.event.get():
@@ -457,6 +457,94 @@ class Player:
                 return
 
     def shop_action_sell(self, centre_screen):
+        item_count = len(self.inventory) + 3  # weapon, armor, inventory, and cancel
+        DEBUG.log("Number of items to sell: {}".format(item_count-1), level=1)
+        button_rect = pg.Rect(0, 0, 300, 40)
 
+        centre_screen.fill(BACKGROUND_COLOUR)
+        item_button_list = []
+        for item_index in range(item_count):
+            y_pos = centre_screen.get_height()/2 - ((item_count/2-item_index) * button_rect.height)
+            if item_index == item_count-1:
+                item_name = "Cancel"
+            elif item_index == 0:  # weapon
+                if not self.weapon:
+                    item_name = "Empty"
+                else:
+                    item_name = self.weapon[ITEM_NAME]
+                    item_name += "   ATT:" + str(self.weapon[ITEM_POINT])
+                    item_name += "    " + str(self.weapon[ITEM_PRICE]/4) + "G"
+            elif item_index == 1:
+                if not self.armor:
+                    item_name = "Empty"
+                else:
+                    item_name = self.armor[ITEM_NAME]
+                    item_name += "   DEF:" + str(self.armor[ITEM_POINT])
+                    item_name += "    " + str(self.armor[ITEM_PRICE]/4) + "G"
+            else:
+                if not self.inventory[item_index-2]:
+                    item_name = "Empty"
+                else:
+                    item_name = self.inventory[item_index-2][ITEM_NAME]
+                    item_name += "    " + str(self.inventory[item_index-2][ITEM_PRICE]/4) + "G"
+            DEBUG.log("Item name: {}".format(item_name), level=2)
+            item_button = Button(
+                centre_screen, (centre_screen.get_width()/2, y_pos),
+                item_name, 14, rect=button_rect, pos_offset=(TILE_WIDTH, TILE_HEIGHT))
+            if item_name is not "Cancel" and item_name is not "Empty":
+                try:
+                    if item_index == 0:
+                        item_button.insert_picture((0, 0), os.path.join(ITEM_IMG_FILE_PATH, self.weapon[ITEM_FILENAME]))
+                    elif item_index == 1:
+                        item_button.insert_picture((0, 0), os.path.join(ITEM_IMG_FILE_PATH, self.armor[ITEM_FILENAME]))
+                except RuntimeError as e:
+                    DEBUG.log(e, level=1)
+                    item_button.insert_picture((0, 0), 'smile.png')
 
-        self.action_result = ACTION_RESULT_SHOP_SELL
+            item_button.update()
+            item_button_list.append(item_button)
+        pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
+
+        while True:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+                for button in item_button_list:
+                    button.update_state(event)
+
+            sold_item = None
+            for button_index in range(len(item_button_list)):
+                if item_button_list[button_index].buttonPressed:
+                    DEBUG.log("{}'th button pressed".format(button_index+1), level=2)
+                    if item_button_list[button_index].text == "Cancel":
+                        DEBUG.log("Cancel clicked", level=2)
+                        return
+                    elif button_index == 0 and self.weapon:
+                        sold_item = self.weapon
+                        DEBUG.log("Item {} clicked".format(sold_item[ITEM_NAME]), level=2)
+                        break
+                    elif button_index == 1 and self.armor:
+                        sold_item = self.armor
+                        DEBUG.log("Item {} clicked".format(sold_item[ITEM_NAME]), level=2)
+                        break
+                    else:
+                        #TODO: Implement other items
+                        pass
+
+            if sold_item:
+                if sold_item is self.weapon:
+                    DEBUG.log("Selling weapon {}".format(sold_item[ITEM_NAME]))
+                    self.weapon = None
+                    self.current_attack -= sold_item[ITEM_POINT]
+                elif sold_item is self.armor:
+                    DEBUG.log("Selling armor {}".format(sold_item[ITEM_NAME]))
+                    self.armor = None
+                    self.current_defence -= sold_item[ITEM_POINT]
+
+                self.gold += sold_item[ITEM_PRICE]/4
+                self.show_textbox_at_centre(
+                    centre_screen, "You sold {}!".format(sold_item[ITEM_NAME]), 1500)
+
+                self.action_result = ACTION_RESULT_SHOP_SELL
+                return
