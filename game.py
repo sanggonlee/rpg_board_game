@@ -44,8 +44,6 @@ class Game:
                     pg.quit()
                     sys.exit()
 
-            self.turn += 1
-
             # determine who plays this turn
             which_player_turn = self.turn % self.num_players
             player = self.players[which_player_turn]
@@ -68,6 +66,8 @@ class Game:
                 # if died, clear the player token from the tile
                 self.board.tiles[player.died_position].draw(self.whole_screen)
                 self.update_player_pos()
+
+            self.turn += 1
 
     def update_player_pos(self):
         # draw all players' tokens

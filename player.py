@@ -5,7 +5,7 @@ import random
 import os
 import sys
 
-from colour import BLACK
+from colour import BLACK, GRAY
 from data import *
 import eztext
 from button import Button
@@ -27,6 +27,7 @@ class Player:
         self.player_id = player_id
         assert 0 <= self.player_id < MAX_NUM_PLAYERS
         assert 0 < health
+        self.player_name = "Player {}".format(self.player_id+1)
 
         self.position = 0
         self.died_position = 0
@@ -45,6 +46,7 @@ class Player:
             self.relative_x = TILE_WIDTH/2
             self.relative_y = TILE_HEIGHT/2
 
+        self.level = 1
         self.weapon = None
         self.armor = None
         self.inventory = [None, None, None, None, None]
@@ -105,9 +107,16 @@ class Player:
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit()
-                elif event.type == pg.MOUSEBUTTONUP:
+                elif event.type == pg.MOUSEBUTTONDOWN:
                     DEBUG.log("Mouse pressed to roll dice", level=2)
                     return self.get_dice_number()
+                elif event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
+                    DEBUG.log("Pressed enter to show status", level=2)
+                    self.show_status(centre_screen)
+
+                    # go back to dice roll / status show UI
+                    dice_roll_textbox.draw(centre_of_centre)
+                    pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
 
     def draw_token(self, screen, tile):
         screen.blit(self.token_image, (tile.x_pos + self.relative_x, tile.y_pos + self.relative_y))
@@ -548,3 +557,72 @@ class Player:
 
                 self.action_result = ACTION_RESULT_SHOP_SELL
                 return
+
+    def show_status(self, centre_screen):
+        centre_screen.fill(BACKGROUND_COLOUR)
+
+        status_rect = pg.Rect(
+            centre_screen.get_width()/3,
+            centre_screen.get_height()/16,
+            centre_screen.get_width()/3,
+            centre_screen.get_height()*7/8
+        )
+        status_surface = centre_screen.subsurface(status_rect)
+        status_surface.fill(GRAY)
+
+        token_image = pg.transform.scale(self.token_image, (status_rect.width/3, status_rect.width/3))
+        status_surface.blit(token_image, (status_rect.width/3, status_rect.height/12))
+
+        current_height = 50+token_image.get_height()
+        name_text_surf = pg.font.Font('freesansbold.ttf', 15)\
+            .render(self.player_name, True, BLACK)
+        status_surface.blit(name_text_surf, name_text_surf.get_rect().move(
+            10, current_height))
+
+        current_height += name_text_surf.get_height()+10
+        level_text_surf = pg.font.Font('freesansbold.ttf', 15)\
+            .render("Lv: {}".format(self.level), True, BLACK)
+        status_surface.blit(level_text_surf, level_text_surf.get_rect().move(
+            10, current_height))
+
+        current_height += level_text_surf.get_height()+10
+        health_text_surf = pg.font.Font('freesansbold.ttf', 15)\
+            .render("HP: {}/{}".format(self.current_health, self.full_health), True, BLACK)
+        status_surface.blit(health_text_surf, health_text_surf.get_rect().move(
+            10, current_height))
+
+        current_height += health_text_surf.get_height()+10
+        attack_text_surf = pg.font.Font('freesansbold.ttf', 15)\
+            .render("ATT: {} + {}".format(self.base_attack, self.current_attack-self.base_attack), True, BLACK)
+        status_surface.blit(attack_text_surf, attack_text_surf.get_rect().move(
+            10, current_height))
+
+        current_height += attack_text_surf.get_height()+10
+        defence_text_surf = pg.font.Font('freesansbold.ttf', 15)\
+            .render("DEF: {} + {}".format(self.base_defence, self.current_defence-self.base_defence), True, BLACK)
+        status_surface.blit(defence_text_surf, defence_text_surf.get_rect().move(
+            10, current_height))
+
+        current_height += defence_text_surf.get_height()+10
+        weapon_text_surf = pg.font.Font('freesansbold.ttf', 15)\
+            .render("Weapon: {}".format(self.weapon[ITEM_NAME] if self.weapon else "None"), True, BLACK)
+        status_surface.blit(weapon_text_surf, weapon_text_surf.get_rect().move(
+            10, current_height))
+
+        current_height += weapon_text_surf.get_height()+10
+        armor_text_surf = pg.font.Font('freesansbold.ttf', 15)\
+            .render("Armor: {}".format(self.armor[ITEM_NAME] if self.armor else "None"), True, BLACK)
+        status_surface.blit(armor_text_surf, armor_text_surf.get_rect().move(
+            10, current_height))
+
+        pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
+
+        while True:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+                elif event.type == pg.MOUSEBUTTONDOWN or (event.type == pg.KEYDOWN and event.key == pg.K_RETURN):
+                    DEBUG.log("Exiting player status", level=2)
+                    centre_screen.fill(BACKGROUND_COLOUR)
+                    return
