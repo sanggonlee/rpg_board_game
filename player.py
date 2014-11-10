@@ -18,6 +18,13 @@ EVENT_GO_FORWARD = 0
 EVENT_GOLD = TILE_GOLD
 EVENT_MONSTER_FIGHT = TILE_MONSTER
 
+# Experience needed for next level
+EXP_REQUIRED = [
+    0, 15, 60, 150, 270,
+    400, 550, 750, 1000, 1400,
+    2000, 2700, 3600, 5000, 7000,
+]
+
 
 class Player:
     """
@@ -76,11 +83,11 @@ class Player:
             y=0,
         )
         if event_type == EVENT_GO_FORWARD:
-            textbox.set_prompt("Player {}, click anywhere to roll dice.".format(self.player_id+1))
+            textbox.set_prompt("{}, click anywhere to roll dice.".format(self.player_name))
         elif event_type == EVENT_GOLD:
-            textbox.set_prompt("Click anywhere to find out how much gold you found, Player {}".format(self.player_id+1))
+            textbox.set_prompt("Click anywhere to find out how much gold you found, {}".format(self.player_name))
         elif event_type == EVENT_MONSTER_FIGHT:
-            textbox.set_prompt("Click anywhere to see your fight condition for today, Player {}".format(self.player_id+1))
+            textbox.set_prompt("Click anywhere to see your fight condition for today, {}".format(self.player_name))
         else:
             raise TypeError("get_dice_roll_textbox() got invalid event_type")
 
@@ -159,8 +166,9 @@ class Player:
             y=0,
         )
         textbox.draw(textbox.get_centre_surface(centre_screen))
-        textbox.update(pg.event.get())
-        pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
+        #textbox.update(pg.event.get())
+        DEBUG.log("Displaying textbox with message '{}'".format(prompt), level=2)
+        pg.display.flip()
         pg.time.delay(time)
 
     def process_action_gold_get(self, centre_screen, gold_multiplier):
@@ -169,7 +177,7 @@ class Player:
         self.gold += amount_got
         Player.show_textbox_at_centre(
             centre_screen,
-            "Player {} found {} gold and now has {} gold!".format(self.player_id+1, amount_got, self.gold),
+            "{} found {} gold and now has {} gold!".format(self.player_name, amount_got, self.gold),
             1000)
         self.action_result = ACTION_RESULT_GOLD_GET
         return self.action_result
@@ -187,7 +195,7 @@ class Player:
         self.current_health = min(self.current_health+amount, self.full_health)
         Player.show_textbox_at_centre(
             centre_screen,
-            "Player {} gets treated! HP:{}/{}".format(self.player_id+1, self.current_health, self.full_health),
+            "{} gets treated! HP:{}/{}".format(self.player_name, self.current_health, self.full_health),
             1000
         )
         self.action_result = ACTION_RESULT_HEAL
@@ -197,7 +205,7 @@ class Player:
         self.respawn_pos = position
         Player.show_textbox_at_centre(
             centre_screen,
-            "Player {} marks the respawn point here!".format(self.player_id+1),
+            "{} marks the respawn point here!".format(self.player_name),
             1000
         )
         self.action_result = ACTION_RESULT_RESPAWN
@@ -208,7 +216,7 @@ class Player:
         return self.action_result
 
     @staticmethod
-    def draw_monster_card(self, centre_screen, data):
+    def draw_monster_card(centre_screen, data):
         """
         :param centre_screen: screen excluding the tiles area
         :param data: monster's data
@@ -274,21 +282,23 @@ class Player:
         turn = 0
         while True:
             fight_scene_surface.fill(BACKGROUND_COLOUR)
-            monster_fight_scene_textbox.set_prompt("Player {}:{}/{}, {}:{}/{}".format(
-                self.player_id+1, max(self.current_health, 0), self.full_health,
+            monster_fight_scene_textbox.set_prompt("{}:{}/{}, {}:{}/{}".format(
+                self.player_name, max(self.current_health, 0), self.full_health,
                 data[MONSTER_NAME], max(monster_current_hp, 0), data[MONSTER_HEALTH]
             ))
             monster_fight_scene_textbox.draw(fight_scene_surface)
             pg.display.flip()
-            DEBUG.log("Fighting with monster, Player {}:{}/{}    {}:{}/{}".format(
-                self.player_id+1, max(self.current_health, 0), self.full_health,
+            DEBUG.log("Fighting with monster, {}:{}/{}    {}:{}/{}".format(
+                self.player_name, max(self.current_health, 0), self.full_health,
                 data[MONSTER_NAME], max(monster_current_hp, 0), data[MONSTER_HEALTH]), level=2)
             pg.time.delay(300)
 
             if self.current_health <= 0:
                 self.die(fight_scene_surface)
+                break
             elif monster_current_hp <= 0:
                 self.win(fight_scene_surface, data)
+                break
 
             if turn % 2 == MONSTER_TURN:
                 self.current_health -= (data[MONSTER_ATTACK] - self.current_defence)
@@ -298,22 +308,38 @@ class Player:
             turn += 1
 
     def die(self, fight_scene_surface):
-        msg = "Player {} died!".format(self.player_id+1)
+        msg = "{} died!".format(self.player_name)
         self.show_textbox_at_centre(fight_scene_surface, msg, 2000)
 
         self.died_position = self.position
         self.position = self.respawn_pos
+        self.current_health = self.full_health
 
         self.action_result = ACTION_RESULT_DIE
 
     def win(self, fight_scene_surface, data):
-        msg = "Player {} has gained {} exp and {} gold!"\
-            .format(self.player_id+1, 10*data[MONSTER_LEVEL], 10*data[MONSTER_LEVEL])
+        DEBUG.log("Fight won", level=1)
+        msg = "{} has gained {} exp and {} gold!"\
+            .format(self.player_name, 10*data[MONSTER_LEVEL], 10*data[MONSTER_LEVEL])
         self.show_textbox_at_centre(fight_scene_surface, msg, 2000)
 
         # For now, loot is 10*(monster's level)
         self.exp += 10*data[MONSTER_LEVEL]
         self.gold += 10*data[MONSTER_LEVEL]
+
+        if self.exp >= EXP_REQUIRED[self.level]:
+            DEBUG.log("Level up", level=1)
+            if self.level >= 15:
+                raise NotImplementedError("Level higher than 15 not implemented yet.")
+
+            self.level += 1
+            self.full_health += 15
+            self.current_health += 15
+            self.base_attack += 2
+            self.current_attack += 2
+
+            levelup_msg = "{} level up! Lv.{}".format(self.player_name, self.level)
+            self.show_textbox_at_centre(fight_scene_surface, levelup_msg, 2000)
 
         self.action_result = ACTION_RESULT_WIN
 

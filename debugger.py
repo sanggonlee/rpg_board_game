@@ -4,7 +4,7 @@ import inspect
 SKIP_GOLD_GET = True
 SKIP_HEAL = True
 SKIP_RESPAWN = True
-SKIP_MONSTER_FIGHT = True
+SKIP_MONSTER_FIGHT = False
 SKIP_SHOP = False
 
 

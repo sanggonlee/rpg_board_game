@@ -96,7 +96,7 @@ tile_data = [
     (TILE_RESPAWN,),
     (TILE_GOLD, 10),
     (TILE_MONSTER, monster_data['boar']),
-    (TILE_ARMOR_SHOP, [weapon_data['dagger'], weapon_data['spear'], weapon_data['long sword']]),
+    (TILE_WEAPON_SHOP, [weapon_data['dagger'], weapon_data['spear'], weapon_data['long sword']]),
     (TILE_MONSTER, monster_data['orc']),
     (TILE_HEAL, 100),
     (TILE_MONSTER, monster_data['skeleton']),
