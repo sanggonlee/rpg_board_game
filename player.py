@@ -227,8 +227,12 @@ class Player:
             image = pg.image.load(os.path.join(MONSTER_IMG_FILE_PATH, data[MONSTER_IMG_FILE]))
         except RuntimeError as e:
             DEBUG.log(e, level=1)
-            image = pg.image.load('smile.png')
-        image = pg.transform.scale(image, (centre_screen.get_height(), centre_screen.get_height()))
+            try:
+                image = pg.image.load('smile.png')
+            except:
+                raise Exception
+        finally:
+            image = pg.transform.scale(image, (centre_screen.get_height(), centre_screen.get_height()))
         DEBUG.log("received image, image={}".format(image), level=3)
 
         card_surface = centre_screen.subsurface(0, 0, image.get_height(), image.get_height())
@@ -422,7 +426,10 @@ class Player:
                     item_button.insert_picture((0, 0), os.path.join(ITEM_IMG_FILE_PATH, data[item_index][ITEM_FILENAME]))
                 except RuntimeError as e:
                     DEBUG.log(e, level=1)
-                    item_button.insert_picture((0, 0), 'smile.png')
+                    try:
+                        item_button.insert_picture((0, 0), 'smile.png')
+                    except:
+                        raise Exception
 
             item_button.update()
             item_button_list.append(item_button)
@@ -534,7 +541,10 @@ class Player:
                         item_button.insert_picture((0, 0), os.path.join(ITEM_IMG_FILE_PATH, self.armor[ITEM_FILENAME]))
                 except RuntimeError as e:
                     DEBUG.log(e, level=1)
-                    item_button.insert_picture((0, 0), 'smile.png')
+                    try:
+                        item_button.insert_picture((0, 0), 'smile.png')
+                    except:
+                        raise Exception
 
             item_button.update()
             item_button_list.append(item_button)
@@ -602,44 +612,62 @@ class Player:
         current_height = 50+token_image.get_height()
         name_text_surf = pg.font.Font('freesansbold.ttf', 15)\
             .render(self.player_name, True, BLACK)
-        status_surface.blit(name_text_surf, name_text_surf.get_rect().move(
-            10, current_height))
+        status_surface.blit(name_text_surf, name_text_surf.get_rect().move(8, current_height))
 
         current_height += name_text_surf.get_height()+10
         level_text_surf = pg.font.Font('freesansbold.ttf', 15)\
             .render("Lv: {}".format(self.level), True, BLACK)
-        status_surface.blit(level_text_surf, level_text_surf.get_rect().move(
-            10, current_height))
+        status_surface.blit(level_text_surf, level_text_surf.get_rect().move(8, current_height))
 
         current_height += level_text_surf.get_height()+10
         health_text_surf = pg.font.Font('freesansbold.ttf', 15)\
             .render("HP: {}/{}".format(self.current_health, self.full_health), True, BLACK)
-        status_surface.blit(health_text_surf, health_text_surf.get_rect().move(
-            10, current_height))
+        status_surface.blit(health_text_surf, health_text_surf.get_rect().move(8, current_height))
 
         current_height += health_text_surf.get_height()+10
         attack_text_surf = pg.font.Font('freesansbold.ttf', 15)\
             .render("ATT: {} + {}".format(self.base_attack, self.current_attack-self.base_attack), True, BLACK)
-        status_surface.blit(attack_text_surf, attack_text_surf.get_rect().move(
-            10, current_height))
+        status_surface.blit(attack_text_surf, attack_text_surf.get_rect().move(8, current_height))
 
         current_height += attack_text_surf.get_height()+10
         defence_text_surf = pg.font.Font('freesansbold.ttf', 15)\
             .render("DEF: {} + {}".format(self.base_defence, self.current_defence-self.base_defence), True, BLACK)
-        status_surface.blit(defence_text_surf, defence_text_surf.get_rect().move(
-            10, current_height))
+        status_surface.blit(defence_text_surf, defence_text_surf.get_rect().move(8, current_height))
 
         current_height += defence_text_surf.get_height()+10
         weapon_text_surf = pg.font.Font('freesansbold.ttf', 15)\
-            .render("Weapon: {}".format(self.weapon[ITEM_NAME] if self.weapon else "None"), True, BLACK)
-        status_surface.blit(weapon_text_surf, weapon_text_surf.get_rect().move(
-            10, current_height))
+            .render("Weapon:      {}".format(self.weapon[ITEM_NAME] if self.weapon else "None"), True, BLACK)
+        status_surface.blit(weapon_text_surf, weapon_text_surf.get_rect().move(8, current_height))
+        if self.weapon:
+            try:
+                weapon_image = pg.image.load(os.path.join(MONSTER_IMG_FILE_PATH, self.weapon[ITEM_FILENAME]))
+            except RuntimeError as e:
+                DEBUG.log(e, level=1)
+                try:
+                    weapon_image = pg.image.load('smile.png')
+                except:
+                    raise Exception
+            finally:
+                weapon_image = pg.transform.scale(weapon_image, (weapon_text_surf.get_height(), weapon_text_surf.get_height()))
+                status_surface.blit(weapon_image, weapon_image.get_rect().move(80, current_height))
 
         current_height += weapon_text_surf.get_height()+10
         armor_text_surf = pg.font.Font('freesansbold.ttf', 15)\
-            .render("Armor: {}".format(self.armor[ITEM_NAME] if self.armor else "None"), True, BLACK)
+            .render("Armor   :      {}".format(self.armor[ITEM_NAME] if self.armor else "None"), True, BLACK)
         status_surface.blit(armor_text_surf, armor_text_surf.get_rect().move(
             10, current_height))
+        if self.armor:
+            try:
+                armor_image = pg.image.load(os.path.join(MONSTER_IMG_FILE_PATH, self.armor[ITEM_FILENAME]))
+            except RuntimeError as e:
+                DEBUG.log(e, level=1)
+                try:
+                    armor_image = pg.image.load('smile.png')
+                except:
+                    raise Exception
+            finally:
+                armor_image = pg.transform.scale(armor_image, (armor_text_surf.get_height(), armor_text_surf.get_height()))
+                status_surface.blit(armor_image, armor_image.get_rect().move(80, current_height))
 
         pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
 
