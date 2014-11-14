@@ -10,7 +10,8 @@ from data import *
 import eztext
 from button import Button
 
-from debugger import Debugger as DEBUG, SKIP_GOLD_GET, SKIP_HEAL, SKIP_RESPAWN, SKIP_MONSTER_FIGHT, SKIP_SHOP
+from debugger import Debugger as DEBUG, \
+    SKIP_GOLD_GET, SKIP_HEAL, SKIP_RESPAWN, SKIP_MONSTER_FIGHT, SKIP_SHOP, SKIP_DICE_GRAPHICS
 
 
 # Event types for rolling dice
@@ -116,7 +117,10 @@ class Player:
                     sys.exit()
                 elif event.type == pg.MOUSEBUTTONDOWN:
                     DEBUG.log("Mouse pressed to roll dice", level=2)
-                    return self.get_dice_number()
+                    dice_number = Player.get_dice_number()
+                    if not SKIP_DICE_GRAPHICS:
+                        Player.show_dice_graphics(centre_screen, dice_number)
+                    return dice_number
                 elif event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                     DEBUG.log("Pressed enter to show status", level=2)
                     self.show_status(centre_screen)
@@ -124,6 +128,19 @@ class Player:
                     # go back to dice roll / status show UI
                     dice_roll_textbox.draw(centre_of_centre)
                     pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
+
+    @staticmethod
+    def show_dice_graphics(centre_screen, dice_number):
+        centre_screen.fill(BACKGROUND_COLOUR)
+        dice_images = [None] * 6
+        for i in range(6):
+            dice_images[i] = pg.transform.scale(pg.image.load('dice_{}.png'.format(i+1)), (200, 200))
+
+        for j in range(18+dice_number):
+            centre_screen.blit(dice_images[j % 6], (300, 100))
+            pg.display.update(centre_screen.get_rect(topleft=(TILE_WIDTH, TILE_HEIGHT)))
+            pg.time.delay(75)
+        pg.time.delay(1500)
 
     def draw_token(self, screen, tile):
         screen.blit(self.token_image, (tile.x_pos + self.relative_x, tile.y_pos + self.relative_y))
