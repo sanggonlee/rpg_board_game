@@ -9,9 +9,10 @@ from colour import BLACK, GRAY
 from data import *
 import eztext
 from button import Button
+from PlayerParty import PlayerParty
 
 from debugger import Debugger as DEBUG, \
-    SKIP_GOLD_GET, SKIP_HEAL, SKIP_RESPAWN, SKIP_MONSTER_FIGHT, SKIP_SHOP, SKIP_DICE_GRAPHICS
+    SKIP_GOLD_GET, SKIP_HEAL, SKIP_RESPAWN, SKIP_MONSTER_FIGHT, SKIP_OLD_MONSTER_FIGHT, SKIP_SHOP, SKIP_DICE_GRAPHICS
 
 
 # Event types for rolling dice
@@ -68,6 +69,8 @@ class Player:
         self.current_health = self.full_health
         self.current_attack = self.base_attack
         self.current_defence = self.base_defence
+
+        self.party = PlayerParty(None)
 
         self.action_result = ACTION_RESULT_INVALID
 
@@ -154,7 +157,11 @@ class Player:
         elif tile_type is TILE_MONSTER:
             if SKIP_MONSTER_FIGHT:
                 return
-            result = self.process_action_monster(centre_screen, tile_value[TILE_MONSTER_DATA])
+            elif SKIP_OLD_MONSTER_FIGHT:
+                self.party.draw(centre_screen)
+                result = 999
+            else:
+                result = self.process_action_monster(centre_screen, tile_value[TILE_MONSTER_DATA])
         elif tile_type is TILE_HEAL:
             if SKIP_HEAL:
                 return

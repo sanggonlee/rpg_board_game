@@ -55,9 +55,9 @@ class Tile:
                 DEBUG.log(e, level=1)
                 self.image = pg.image.load('smile.png')
         elif self.data[TILE_TYPE] == TILE_WEAPON_SHOP:
-            self.image = pg.image.load('smile.png')
+            self.image = pg.image.load('weapon_shop.png')
         elif self.data[TILE_TYPE] == TILE_ARMOR_SHOP:
-            self.image = pg.image.load('smile.png')
+            self.image = pg.image.load('armor_shop.png')
         elif self.data[TILE_TYPE] == TILE_RESPAWN:
             self.image = pg.image.load('respawn.png')
         elif self.data[TILE_TYPE] == TILE_HEAL:
