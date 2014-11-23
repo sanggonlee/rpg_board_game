@@ -10,6 +10,8 @@ from data import *
 import eztext
 from button import Button
 from PlayerParty import PlayerParty
+from MonsterParty import MonsterParty
+from MonsterUnit import MonsterUnit
 
 from debugger import Debugger as DEBUG, \
     SKIP_GOLD_GET, SKIP_HEAL, SKIP_RESPAWN, SKIP_MONSTER_FIGHT, SKIP_OLD_MONSTER_FIGHT, SKIP_SHOP, SKIP_DICE_GRAPHICS
@@ -70,7 +72,8 @@ class Player:
         self.current_attack = self.base_attack
         self.current_defence = self.base_defence
 
-        self.party = PlayerParty(None)
+        player_unit = MonsterUnit((1, 2), (MONSTER_TYPE_BOSS, self.player_name, 'bandit.png', 1, 100, 10, 0))
+        self.party = PlayerParty(player_unit)
 
         self.action_result = ACTION_RESULT_INVALID
 
@@ -158,7 +161,11 @@ class Player:
             if SKIP_MONSTER_FIGHT:
                 return
             elif SKIP_OLD_MONSTER_FIGHT:
-                self.party.draw(centre_screen)
+                self.party.draw(centre_screen, True)
+                monster_party = MonsterParty()
+                monster_party.insert_data(tile_value[TILE_MONSTER_DATA])
+                monster_party.draw(centre_screen)
+                pg.time.delay(1000)
                 result = 999
             else:
                 result = self.process_action_monster(centre_screen, tile_value[TILE_MONSTER_DATA])

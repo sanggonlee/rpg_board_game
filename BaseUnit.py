@@ -26,6 +26,6 @@ class BaseUnit:
         self.name = data[MONSTER_NAME]
         self.img_file_path = data[MONSTER_IMG_FILE]
         self.level = data[MONSTER_LEVEL]
-        self.health - data[MONSTER_HEALTH]
+        self.health = data[MONSTER_HEALTH]
         self.base_attack = data[MONSTER_ATTACK]
         self.base_defence = data[MONSTER_DEFENCE]

@@ -50,7 +50,8 @@ class Tile:
         elif self.data[TILE_TYPE] == TILE_MONSTER:
             try:
                 self.image = pg.image.load(
-                    os.path.join(MONSTER_IMG_FILE_PATH, self.data[TILE_MONSTER_DATA][MONSTER_IMG_FILE]))
+                    # show image of the first monster in the list as tile image
+                    os.path.join(MONSTER_IMG_FILE_PATH, self.data[TILE_MONSTER_DATA][0][0][MONSTER_IMG_FILE]))
             except RuntimeError as e:
                 DEBUG.log(e, level=1)
                 self.image = pg.image.load('smile.png')
