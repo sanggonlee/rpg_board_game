@@ -168,7 +168,8 @@ class Player:
                 pg.time.delay(1000)
                 result = 999
             else:
-                result = self.process_action_monster(centre_screen, tile_value[TILE_MONSTER_DATA])
+                # Use data for first monster in the list if using old fight style
+                result = self.process_action_monster(centre_screen, tile_value[TILE_MONSTER_DATA][0][0])
         elif tile_type is TILE_HEAL:
             if SKIP_HEAL:
                 return

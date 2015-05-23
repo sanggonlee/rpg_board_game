@@ -1,13 +1,13 @@
 import inspect
 
 
-SKIP_GOLD_GET = True
-SKIP_HEAL = True
+SKIP_GOLD_GET = False
+SKIP_HEAL = False
 SKIP_RESPAWN = False
 SKIP_MONSTER_FIGHT = False
-SKIP_OLD_MONSTER_FIGHT = True
+SKIP_OLD_MONSTER_FIGHT = False
 SKIP_SHOP = False
-SKIP_DICE_GRAPHICS = True
+SKIP_DICE_GRAPHICS = False
 
 
 class Debugger:
